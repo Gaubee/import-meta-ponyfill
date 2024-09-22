@@ -7,7 +7,6 @@ import { import_meta_ponyfill } from "./index.mjs";
 
 const DIRNAME = process.cwd();
 const UNI_DIRNAME = process.cwd().replaceAll("\\", "/");
-console.log("DIRNAME", UNI_DIRNAME);
 
 test("1", () => {
   assert.equal(

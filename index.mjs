@@ -9,6 +9,15 @@ export let import_meta_ponyfill = (importMeta) => {
     /\/{3,}/,
     "///"
   );
+  const commonShim = (importMeta) => {
+    if (typeof importMeta.main !== "boolean") {
+      importMeta.main = importMeta.url === mainUrl;
+    }
+    if (typeof importMeta.filename !== "string") {
+      importMeta.filename = fileURLToPath(importMeta.url);
+      importMeta.dirname = dirname(importMeta.filename);
+    }
+  };
   if (
     // v16.2.0+, v14.18.0+: Add support for WHATWG URL object to parentURL parameter.
     resolveFunStr === "undefined" ||
@@ -31,7 +40,7 @@ export let import_meta_ponyfill = (importMeta) => {
             ).resolve(specifier)
           ).href;
         };
-        importMeta.main = importMeta.url === mainUrl;
+        commonShim(importMeta);
       }
       return importMeta;
     };
@@ -40,15 +49,10 @@ export let import_meta_ponyfill = (importMeta) => {
     import_meta_ponyfill = (importMeta) => {
       if (!shimWs.has(importMeta)) {
         shimWs.add(importMeta);
-        importMeta.main = importMeta.url === mainUrl;
-        if (typeof importMeta.filename !== "string") {
-          importMeta.filename = fileURLToPath(importMeta.url);
-          importMeta.dirname = dirname(importMeta.filename);
-        }
+        commonShim(importMeta);
       }
       return importMeta;
     };
   }
   return import_meta_ponyfill(importMeta);
 };
-console.log(import.meta);
