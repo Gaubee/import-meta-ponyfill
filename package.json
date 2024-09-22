@@ -1,6 +1,6 @@
 {
   "name": "import-meta-ponyfill",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.cjs",
   "types": "index.d.cts",
@@ -16,6 +16,14 @@
   },
   "scripts": {
     "test": "node --test ./index.test.mjs && node --test ./index.test.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/BioforestChain/import-meta-ponyfill.git"
+  },
+  "bugs": {
+    "email": "gaubeebangeel@gmail.com",
+    "url": "https://github.com/BioforestChain/import-meta-ponyfill/issues"
   },
   "keywords": [
     "import.meta",
