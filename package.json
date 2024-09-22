@@ -1,0 +1,31 @@
+{
+  "name": "import-meta-ponyfill",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.cjs",
+  "types": "index.d.cts",
+  "exports": {
+    "import": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "require": {
+      "types": "./index.d.cts",
+      "default": "./index.cjs"
+    }
+  },
+  "scripts": {
+    "test": "node --test ./index.test.mjs && node --test ./index.test.cjs"
+  },
+  "keywords": [
+    "import.meta",
+    "import.meta.resolve",
+    "polyfill",
+    "ponyfill"
+  ],
+  "author": "Gaubee <gaubeebangeel@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@dweb-browser/zstd-wasm": "^1.2.1"
+  }
+}
