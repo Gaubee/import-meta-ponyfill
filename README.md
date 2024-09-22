@@ -1,4 +1,4 @@
-# import.meta shim lib
+# import.meta ponyfill
 
 This library implements some standard interfaces of [import.meta](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import.meta) with the aim of resolving the confusion caused by multiple standards in Node.js.
 It includes unified support for the following Node.js standards:
