@@ -5,3 +5,5 @@ node_modules
 deno.json
 deno.lock
 *.test.*
+/test
+/*.yaml
