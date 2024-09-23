@@ -1,17 +1,19 @@
 {
   "name": "import-meta-ponyfill",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "",
-  "main": "index.cjs",
-  "types": "index.d.cts",
+  "main": "./index.cjs",
+  "types": "./index.d.cts",
   "exports": {
-    "import": {
-      "types": "./index.d.mts",
-      "default": "./index.mjs"
-    },
-    "require": {
-      "types": "./index.d.cts",
-      "default": "./index.cjs"
+    ".": {
+      "import": {
+        "types": "./index.d.mts",
+        "default": "./index.mjs"
+      },
+      "require": {
+        "types": "./index.d.cts",
+        "default": "./index.cjs"
+      }
     }
   },
   "scripts": {
