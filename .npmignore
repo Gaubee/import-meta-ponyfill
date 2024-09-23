@@ -1,0 +1,7 @@
+scripts
+template
+.vscode
+node_modules
+deno.json
+deno.lock
+*.test.*

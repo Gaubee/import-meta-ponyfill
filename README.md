@@ -7,7 +7,7 @@ It includes unified support for the following Node.js standards:
 
 - commonjs
   ```ts
-  const { import_meta_ponyfill } = require("import-meta-ponyfill");
+  const import_meta_ponyfill = require("import-meta-ponyfill");
   const importMeta = import_meta_ponyfill(require, module);
   importMeta.resolve; // function
   importMeta.main; // boolean
@@ -17,7 +17,7 @@ It includes unified support for the following Node.js standards:
   ```
 - esmodule
   ```ts
-  import { import_meta_ponyfill } from "import-meta-ponyfill";
+  import import_meta_ponyfill from "import-meta-ponyfill";
   const importMeta = import_meta_ponyfill(import.meta);
   ```
   - v20.6.0, v18.19.0
@@ -47,11 +47,24 @@ It includes unified support for the following Node.js standards:
   > }
   > ```
 - `resolve(specifier: string, parent?: string | URL | undefined): string;`
-  > A function that returns resolved specifier as if it would be imported
-  > using `import(specifier)`.
+  > A function that returns the resolved specifier,
+  > see [`import.meta.resolve(specifier)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import.meta/resolve),
+  > even attempting to return a result for non-existent paths.
   >
   > ```ts
   > console.log(importMeta.resolve("./foo.js"));
+  > // file:///dev/foo.js
+  > ```
+  >
+  > @param specifier The module specifier to resolve relative to `parent`.
+  > @param parent The absolute parent module URL to resolve from.
+  > @returns The absolute (`file:`) URL string for the resolved module.
+- `nodeResolve(specifier: string, parent?: string | URL | undefined): string;`
+  > A function that returns resolved specifier as if it would be imported
+  > using `import.meta.resolve(specifier) or require.resolve(specifier)`.
+  >
+  > ```ts
+  > console.log(import.meta.nodeResolve("./foo.js"));
   > // file:///dev/foo.js
   > ```
   >
