@@ -1,15 +1,23 @@
 //@ts-check
 const { createRequire } = require("node:module");
 const { pathToFileURL } = require("node:url");
-const { dirname } = require("node:path");
 
-const requireImportMetaWM = new WeakMap();
-let import_meta_ponyfill = (require, filename) => {
-  let importMeta = requireImportMetaWM.get(require);
+/**
+ * @type {WeakMap<NodeJS.Module, import('./index.d.cts').ImportMeta>}
+ */
+const moduleImportMetaWM = new WeakMap();
+/**
+ *
+ * @param {NodeJS.Require} require
+ * @param {NodeJS.Module} module
+ * @returns
+ */
+let import_meta_ponyfill = (require, module) => {
+  let importMeta = moduleImportMetaWM.get(module);
   if (importMeta == null) {
     importMeta = Object.assign(Object.create(null), {
-      url: pathToFileURL(filename).href,
-      main: require.main.filename == filename,
+      url: pathToFileURL(module.filename).href,
+      main: require.main == module,
       resolve: (specifier, parentURL = importMeta.url) => {
         return pathToFileURL(
           (importMeta.url === parentURL
@@ -18,10 +26,10 @@ let import_meta_ponyfill = (require, filename) => {
           ).resolve(specifier)
         ).href;
       },
-      filename,
-      dirname: dirname(filename),
+      filename: module.filename,
+      dirname: module.path,
     });
-    requireImportMetaWM.set(require, importMeta);
+    moduleImportMetaWM.set(module, importMeta);
   }
   return importMeta;
 };

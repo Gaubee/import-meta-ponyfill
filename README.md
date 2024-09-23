@@ -8,7 +8,7 @@ It includes unified support for the following Node.js standards:
 - commonjs
   ```ts
   const { import_meta_ponyfill } = require("import-meta-ponyfill");
-  const importMeta = import_meta_ponyfill(require, __filename);
+  const importMeta = import_meta_ponyfill(require, module);
   importMeta.resolve; // function
   importMeta.main; // boolean
   importMeta.url; // string

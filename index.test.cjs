@@ -9,7 +9,7 @@ const UNI_DIRNAME = __dirname.replaceAll("\\", "/");
 
 test("1", () => {
   assert.equal(
-    import_meta_ponyfill(require, __filename)
+    import_meta_ponyfill(require, module)
       .resolve("./index.cjs")
       .replace(UNI_DIRNAME, "*"),
     "file:///*/index.cjs"
@@ -18,7 +18,7 @@ test("1", () => {
 
 test("2", () => {
   assert.equal(
-    import_meta_ponyfill(require, __filename)
+    import_meta_ponyfill(require, module)
       .resolve("@dweb-browser/zstd-wasm")
       .replace(UNI_DIRNAME, "*"),
     "file:///*/node_modules/@dweb-browser/zstd-wasm/zstd_wasm.js"
@@ -27,29 +27,29 @@ test("2", () => {
 
 test("3", () => {
   assert.equal(
-    import_meta_ponyfill(require, __filename)
+    import_meta_ponyfill(require, module)
       .resolve("@dweb-browser/zstd-wasm/zstd_wasm_bg_wasm")
       .replace(UNI_DIRNAME, "*"),
     "file:///*/node_modules/@dweb-browser/zstd-wasm/zstd_wasm_bg_wasm.js"
   );
 });
 test("4", () => {
-  assert.equal(import_meta_ponyfill(require, __filename).main, true);
+  assert.equal(import_meta_ponyfill(require, module).main, true);
 });
 test("5", () => {
   assert.equal(
-    import_meta_ponyfill(require, __filename).url.replace(UNI_DIRNAME, "*"),
+    import_meta_ponyfill(require, module).url.replace(UNI_DIRNAME, "*"),
     "file:///*/index.test.cjs"
   );
 });
 
 test("6", () => {
-  assert.equal(import_meta_ponyfill(require, __filename).dirname, DIRNAME);
+  assert.equal(import_meta_ponyfill(require, module).dirname, DIRNAME);
 });
 
 test("7", () => {
   assert.equal(
-    import_meta_ponyfill(require, __filename).filename,
+    import_meta_ponyfill(require, module).filename,
     resolve(DIRNAME, "index.test.cjs")
   );
 });
