@@ -1,4 +1,4 @@
-import { $ } from "./$.ts";
+import { $ } from "@gaubee/nodekit";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs";
 const resolve = (path: string) => fileURLToPath(import.meta.resolve(path));
@@ -21,7 +21,7 @@ fs.writeFileSync(
   fs.readFileSync(resolve("../template/tsconfig.commonjs.json"))
 );
 $.cd(resolve("../src"));
-await $("tsc", "--build");
+await $`tsc --build`;
 fs.writeFileSync(
   resolve("../index.cjs"),
   fs.readFileSync(resolve("../src/build/index.cjs")) +
@@ -61,7 +61,7 @@ fs.writeFileSync(
   fs.readFileSync(resolve("../template/tsconfig.esmodule.json"))
 );
 $.cd(resolve("../src"));
-await $("tsc", "--build");
+await $`tsc --build`;
 fs.writeFileSync(
   resolve("../index.mjs"),
   fs.readFileSync(resolve("../src/build/index.mjs"))

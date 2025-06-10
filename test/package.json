@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test ./index.test.mjs && node --test ./index.test.cjs"
   },
   "keywords": [],
   "author": "",

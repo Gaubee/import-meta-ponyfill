@@ -1,6 +1,6 @@
 {
   "name": "import-meta-ponyfill",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "",
   "main": "./index.cjs",
   "types": "./index.d.cts",
@@ -19,7 +19,7 @@
   "scripts": {
     "dev": "deno run -A --watch=./template/index.ts ./scripts/build.ts",
     "build": "deno run -A ./scripts/build.ts",
-    "test": "node --test ./index.test.mjs && node --test ./index.test.cjs"
+    "test": "cd test && pnpm test"
   },
   "repository": {
     "type": "git",
@@ -40,6 +40,8 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.2",
     "@dweb-browser/zstd-wasm": "^1.2.1",
-    "@types/node": "^22.5.5"
+    "@gaubee/nodekit": "^0.9.1",
+    "@types/node": "^22.5.5",
+    "prettier": "^3.5.3"
   }
 }

@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL, URL } from "node:url";
 import { dirname as path_dirname, resolve } from "node:path";
+import { realpathSync } from "node:fs";
 
 interface AnyImportMeta {
   url: string;
@@ -101,10 +102,10 @@ type NodeRequest = ReturnType<typeof createRequire>;
 type NodeModule = NonNullable<NodeRequest["main"]>;
 type ImportMetaPonyfillCommonjs = (
   require: NodeRequest,
-  module: NodeModule,
+  module: NodeModule
 ) => PonyfillImportMeta;
 type ImportMetaPonyfillEsmodule = (
-  importMeta: AnyImportMeta,
+  importMeta: AnyImportMeta
 ) => PonyfillImportMeta;
 
 const pathResolve = (specifier: string, parentURL: URL | string) => {
@@ -124,7 +125,7 @@ const pathResolve = (specifier: string, parentURL: URL | string) => {
 
 export const import_meta_ponyfill_commonjs = (Reflect.get(
   globalThis,
-  Symbol.for("import-meta-ponyfill-commonjs"),
+  Symbol.for("import-meta-ponyfill-commonjs")
 ) ??
   (() => {
     const moduleImportMetaWM = new WeakMap<NodeModule, PonyfillImportMeta>();
@@ -138,17 +139,18 @@ export const import_meta_ponyfill_commonjs = (Reflect.get(
             main: require.main === module,
             nodeResolve(
               specifier: string,
-              parentURL: URL | string = importMeta.url,
+              parentURL: URL | string = importMeta.url
             ) {
               return pathToFileURL(
                 (importMeta.url === parentURL
                   ? require
-                  : createRequire(parentURL)).resolve(specifier),
+                  : createRequire(parentURL)
+                ).resolve(specifier)
               ).href;
             },
             resolve: function resolve(
               specifier: string,
-              parentURL: URL | string = importMeta.url,
+              parentURL: URL | string = importMeta.url
             ) {
               if (/^[./]*\/.*/.test(specifier)) {
                 return pathResolve(specifier, parentURL);
@@ -161,7 +163,7 @@ export const import_meta_ponyfill_commonjs = (Reflect.get(
             },
             filename: module.filename,
             dirname: module.path,
-          },
+          }
         );
         moduleImportMetaWM.set(module, importMeta);
         importMetaCache = importMeta;
@@ -172,15 +174,21 @@ export const import_meta_ponyfill_commonjs = (Reflect.get(
 
 export let import_meta_ponyfill_esmodule = (Reflect.get(
   globalThis,
-  Symbol.for("import-meta-ponyfill-esmodule"),
+  Symbol.for("import-meta-ponyfill-esmodule")
 ) ??
   ((importMeta: ImportMeta) => {
     const resolveFunStr = String(importMeta.resolve);
     const importMetaWM = new WeakMap<object, PonyfillImportMeta>();
-    const mainUrl = `file:///${process.argv[1].replace(/\\/g, "/")}`.replace(
-      /\/{3,}/,
-      "///",
-    );
+    const isMain = (filename: string) => {
+      try {
+        const entry = process.argv[1];
+        return (
+          filename === entry || realpathSync(filename) === realpathSync(entry)
+        );
+      } catch {
+        return false;
+      }
+    };
     const isSupportResolve = // v16.2.0+, v14.18.0+: Add support for WHATWG URL object to parentURL parameter.
       resolveFunStr !== "undefined" &&
       // v20.0.0+, v18.19.0+"" This API now returns a string synchronously instead of a Promise.
@@ -194,25 +202,28 @@ export let import_meta_ponyfill_esmodule = (Reflect.get(
         const dirname: string = im.dirname ?? path_dirname(filename);
         const importMeta: PonyfillImportMeta = {
           url: im.url,
-          main: im.main ?? im.url === mainUrl,
+          main: im.main ?? isMain(filename),
           filename,
           dirname,
-          nodeResolve: isSupportResolve ? im.resolve as PonyfillImportMeta['resolve'] : (() => {
-            const importMetaUrlRequire = createRequire(im.url);
-            return (
-              specifier: string,
-              parentURL: string | URL = im.url,
-            ) => {
-              return pathToFileURL(
-                (importMeta.url === parentURL
-                  ? importMetaUrlRequire
-                  : createRequire(parentURL)).resolve(specifier),
-              ).href;
-            };
-          })(),
+          nodeResolve: isSupportResolve
+            ? (im.resolve as PonyfillImportMeta["resolve"])
+            : (() => {
+                const importMetaUrlRequire = createRequire(im.url);
+                return (
+                  specifier: string,
+                  parentURL: string | URL = im.url
+                ) => {
+                  return pathToFileURL(
+                    (importMeta.url === parentURL
+                      ? importMetaUrlRequire
+                      : createRequire(parentURL)
+                    ).resolve(specifier)
+                  ).href;
+                };
+              })(),
           resolve: function resolve(
             specifier: string,
-            parentURL: URL | string = im.url,
+            parentURL: URL | string = im.url
           ) {
             if (/^[./]*\/.*/.test(specifier)) {
               return pathResolve(specifier, parentURL);
