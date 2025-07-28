@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "import-meta-ponyfill": "link:../"
+    "@dweb-browser/zstd-wasm": "^1.2.1",
+    "import-meta-ponyfill": "workspace:*"
   }
 }

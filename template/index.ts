@@ -1,16 +1,20 @@
 import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL, URL } from "node:url";
-import { dirname as path_dirname, resolve } from "node:path";
+import path, { dirname as path_dirname, resolve } from "node:path";
 import { realpathSync } from "node:fs";
 
 interface AnyImportMeta {
   url: string;
-  resolve(specifier: string): unknown;
+  resolve(specifier: string, parentURL?: URL | string): string;
   filename?: string;
   dirname?: string;
   main?: boolean;
 }
-export interface PonyfillImportMeta {
+
+declare global {
+  interface ImportMeta {}
+}
+export interface PonyfillImportMeta extends ImportMeta {
   /** A string representation of the fully qualified module URL. When the
    * module is loaded locally, the value will be a file URL (e.g.
    * `file:///path/module.ts`).
@@ -123,107 +127,32 @@ const pathResolve = (specifier: string, parentURL: URL | string) => {
   return new URL(specifier, baseUrl).href;
 };
 
-export const import_meta_ponyfill_commonjs = (Reflect.get(
-  globalThis,
+export const import_meta_ponyfill_commonjs = /*@__PURE__*/ ((globalThis as any)[
   Symbol.for("import-meta-ponyfill-commonjs")
-) ??
-  (() => {
-    const moduleImportMetaWM = new WeakMap<NodeModule, PonyfillImportMeta>();
-    return (require, module) => {
-      let importMetaCache = moduleImportMetaWM.get(module);
-      if (importMetaCache == null) {
-        const importMeta: PonyfillImportMeta = Object.assign(
-          Object.create(null),
-          {
-            url: pathToFileURL(module.filename).href,
-            main: require.main === module,
-            nodeResolve(
-              specifier: string,
-              parentURL: URL | string = importMeta.url
-            ) {
-              return pathToFileURL(
-                (importMeta.url === parentURL
-                  ? require
-                  : createRequire(parentURL)
-                ).resolve(specifier)
-              ).href;
-            },
-            resolve: function resolve(
-              specifier: string,
-              parentURL: URL | string = importMeta.url
-            ) {
-              if (/^[./]*\/.*/.test(specifier)) {
-                return pathResolve(specifier, parentURL);
-              }
-              try {
-                return importMeta.nodeResolve(specifier, parentURL);
-              } catch {
-                return pathResolve(specifier, parentURL);
-              }
-            },
-            filename: module.filename,
-            dirname: module.path,
-          }
-        );
-        moduleImportMetaWM.set(module, importMeta);
-        importMetaCache = importMeta;
-      }
-      return importMetaCache;
-    };
-  })()) as ImportMetaPonyfillCommonjs;
-
-export let import_meta_ponyfill_esmodule = (Reflect.get(
-  globalThis,
-  Symbol.for("import-meta-ponyfill-esmodule")
-) ??
-  ((importMeta: ImportMeta) => {
-    const resolveFunStr = String(importMeta.resolve);
-    const importMetaWM = new WeakMap<object, PonyfillImportMeta>();
-    const isMain = (filename: string) => {
-      try {
-        const entry = process.argv[1];
-        return (
-          filename === entry || realpathSync(filename) === realpathSync(entry)
-        );
-      } catch {
-        return false;
-      }
-    };
-    const isSupportResolve = // v16.2.0+, v14.18.0+: Add support for WHATWG URL object to parentURL parameter.
-      resolveFunStr !== "undefined" &&
-      // v20.0.0+, v18.19.0+"" This API now returns a string synchronously instead of a Promise.
-      !resolveFunStr.startsWith("async");
-    // enable by --experimental-import-meta-resolve flag
-
-    import_meta_ponyfill_esmodule = (im: AnyImportMeta) => {
-      let importMetaCache = importMetaWM.get(im);
-      if (importMetaCache == null) {
-        const filename: string = im.filename ?? fileURLToPath(im.url);
-        const dirname: string = im.dirname ?? path_dirname(filename);
-        const importMeta: PonyfillImportMeta = {
-          url: im.url,
-          main: im.main ?? isMain(filename),
-          filename,
-          dirname,
-          nodeResolve: isSupportResolve
-            ? (im.resolve as PonyfillImportMeta["resolve"])
-            : (() => {
-                const importMetaUrlRequire = createRequire(im.url);
-                return (
-                  specifier: string,
-                  parentURL: string | URL = im.url
-                ) => {
-                  return pathToFileURL(
-                    (importMeta.url === parentURL
-                      ? importMetaUrlRequire
-                      : createRequire(parentURL)
-                    ).resolve(specifier)
-                  ).href;
-                };
-              })(),
+] ??= (() => {
+  const moduleImportMetaWM = new WeakMap<NodeModule, PonyfillImportMeta>();
+  return (require, module) => {
+    let importMetaCache = moduleImportMetaWM.get(module);
+    if (importMetaCache == null) {
+      const importMeta: PonyfillImportMeta = Object.assign(
+        Object.create(null),
+        {
+          url: pathToFileURL(module.filename).href,
+          main: require.main === module,
+          nodeResolve(
+            specifier: string,
+            parentURL: URL | string = importMeta.url
+          ) {
+            return pathToFileURL(
+              (importMeta.url === parentURL
+                ? require
+                : createRequire(parentURL)
+              ).resolve(specifier)
+            ).href;
+          },
           resolve: function resolve(
             specifier: string,
-            parentURL: URL | string = im.url
+            parentURL: URL | string = importMeta.url
           ) {
             if (/^[./]*\/.*/.test(specifier)) {
               return pathResolve(specifier, parentURL);
@@ -234,11 +163,98 @@ export let import_meta_ponyfill_esmodule = (Reflect.get(
               return pathResolve(specifier, parentURL);
             }
           },
-        };
-        importMetaCache = importMeta;
-        importMetaWM.set(im, importMeta);
-      }
-      return importMetaCache;
-    };
-    return import_meta_ponyfill_esmodule(importMeta);
-  })) as ImportMetaPonyfillEsmodule;
+          filename: module.filename,
+          dirname: module.path,
+        }
+      );
+      moduleImportMetaWM.set(module, importMeta);
+      importMetaCache = importMeta;
+    }
+    return importMetaCache;
+  };
+})() as ImportMetaPonyfillCommonjs);
+
+export const import_meta_ponyfill_esmodule = /*@__PURE__*/ ((globalThis as any)[
+  Symbol.for("import-meta-ponyfill-esmodule")
+] ??= (() => {
+  const importMetaWM = new WeakMap<object, PonyfillImportMeta>();
+
+  return (im: AnyImportMeta) => {
+    let importMetaCache = importMetaWM.get(im);
+    if (importMetaCache == null) {
+      const isMain = (filename: string) => {
+        try {
+          const entry = process.argv[1];
+          return (
+            filename === entry || realpathSync(filename) === realpathSync(entry)
+          );
+        } catch {
+          return false;
+        }
+      };
+      const resolveFunStr = String(im.resolve);
+      /**
+       * enable by --experimental-import-meta-resolve flag
+       * v20.6.0, v18.19.0
+       * No longer behind --experimental-import-meta-resolve CLI flag, except for the non-standard parentURL parameter.
+       */
+      const isSupportResolve = // v16.2.0+, v14.18.0+: Add support for WHATWG URL object to parentURL parameter.
+        resolveFunStr !== "undefined" &&
+        /**
+         * v20.0.0, v18.19.0
+         * This API now returns a string synchronously instead of a Promise.
+         */
+        !resolveFunStr.startsWith("async");
+
+      const filename: string = im.filename ?? fileURLToPath(im.url);
+      const dirname: string = im.dirname ?? path_dirname(filename);
+
+      /**
+       * v20.6.0, v18.19.0
+       * This API no longer throws when targeting file: URLs that do not map to an existing file on the local FS.
+       */
+      const isSupportPathResolve =
+        isSupportResolve && im.resolve(`./${Date.now()}${Math.random()}`);
+
+      let nodeResolve: PonyfillImportMeta["nodeResolve"] = isSupportResolve
+        ? im.resolve
+        : (specifier: string, parentURL?: string | URL): string => {
+            const importMetaUrlRequire = createRequire(im.url);
+            nodeResolve = (specifier, parentURL = im.url) => {
+              return pathToFileURL(
+                (importMeta.url === parentURL
+                  ? importMetaUrlRequire
+                  : createRequire(parentURL)
+                ).resolve(specifier)
+              ).href;
+            };
+            return nodeResolve(specifier, parentURL);
+          };
+
+      let resolve = isSupportPathResolve
+        ? im.resolve
+        : (specifier: string, parentURL?: string | URL) => {
+            if (/^[./]*\//.test(specifier) || path.isAbsolute(specifier)) {
+              return pathResolve(specifier, parentURL ?? im.url);
+            }
+            return nodeResolve(specifier, parentURL);
+          };
+
+      const importMeta: PonyfillImportMeta = {
+        ...im,
+        url: im.url,
+        main: im.main ?? isMain(filename),
+        filename,
+        dirname,
+        get nodeResolve() {
+          return nodeResolve;
+        },
+        resolve: resolve,
+      };
+      Object.setPrototypeOf(importMeta, null);
+      importMetaCache = importMeta;
+      importMetaWM.set(im, importMeta);
+    }
+    return importMetaCache;
+  };
+})() as ImportMetaPonyfillEsmodule);
