@@ -213,8 +213,13 @@ export const import_meta_ponyfill_esmodule = /*@__PURE__*/ ((globalThis as any)[
        * v20.6.0, v18.19.0
        * This API no longer throws when targeting file: URLs that do not map to an existing file on the local FS.
        */
-      const isSupportPathResolve =
-        isSupportResolve && im.resolve(`./${Date.now()}${Math.random()}`);
+      let isSupportPathResolve = false;
+      if (isSupportResolve) {
+        try {
+          im.resolve(`./${Date.now()}${Math.random()}`);
+          isSupportPathResolve = true;
+        } catch {}
+      }
 
       let nodeResolve: PonyfillImportMeta["nodeResolve"] = isSupportResolve
         ? im.resolve
